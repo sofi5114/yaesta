@@ -1,0 +1,40 @@
+@import '../login/login.css';
+
+small {
+  color: #71695f;
+  font-size: 12px;
+}
+
+.opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 18px;
+  color: #71695f;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.opcion input {
+  flex-shrink: 0;
+  width: 19px;
+  height: 19px;
+  margin-top: 2px;
+  accent-color: #a85d00;
+}
+
+.boton {
+  display: block;
+  padding: 16px;
+  border-radius: 12px;
+  background: #ffad32;
+  color: #33220b;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.pie a {
+  color: #835000;
+}

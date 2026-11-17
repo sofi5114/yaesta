@@ -1,0 +1,67 @@
+<main class="panel">
+  <a class="volver" [routerLink]="['/panel-negocio', id]">← Volver a la cola</a>
+  <p class="etiqueta">SERVICIOS DEL NEGOCIO</p>
+  <h1>{{ negocio()?.nombre ?? 'Gestión de servicios' }}</h1>
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+  @if (mensaje()) { <p class="exito" role="status">{{ mensaje() }}</p> }
+  @if (cargando()) { <p role="status">Cargando servicios…</p> }
+  @if (negocio()) {
+    <section class="configuracion">
+      <div>
+        <h2>{{ editarId() === null ? 'Nuevo servicio' : 'Editar servicio' }}</h2>
+        <p>La duración ayuda a estimar la espera. Los días definen cuándo sugerir otra visita después de completar una atención.</p>
+        <p>Deja los días vacíos si este servicio no necesita recordatorios.</p>
+      </div>
+      <form #formulario="ngForm" (ngSubmit)="guardar()">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" name="nombre" [(ngModel)]="datos.nombre" required maxlength="100" />
+        <label for="precio">Precio, S/</label>
+        <input id="precio" name="precio" type="number" [(ngModel)]="datos.precio" required min="0" max="99999999.99" step="0.01" />
+        <label for="duracion">Duración, minutos</label>
+        <input id="duracion" name="duracion" type="number" [(ngModel)]="datos.duracionMinutos" required min="1" max="2147483647" step="1" />
+        <label for="dias">Días para la próxima visita (opcional)</label>
+        <input id="dias" name="dias" type="number" [(ngModel)]="datos.diasRecordatorio" min="1" max="2147483647" step="1" />
+        <div class="acciones">
+          <button class="principal" type="submit" [disabled]="formulario.invalid || guardando() || cargando()">{{ guardando() ? 'Guardando…' : 'Guardar servicio' }}</button>
+          @if (editarId() !== null) { <button type="button" [disabled]="guardando()" (click)="nuevo()">Cancelar edición</button> }
+        </div>
+      </form>
+    </section>
+    <section class="cola">
+      <h2>Servicios disponibles</h2>
+      <div class="lista">
+        @for (item of resultado()?.contenido ?? []; track item.id) {
+          <article class="turno">
+            <div>
+              <h3>{{ item.nombre }}</h3>
+              <p>{{ item.precio | currency:'PEN':'S/ ':'1.2-2' }} · {{ item.duracionMinutos }} min</p>
+              <p>{{ item.diasRecordatorio === null ? 'Sin recordatorio' : 'Próxima visita: ' + item.diasRecordatorio + ' días' }}</p>
+            </div>
+            <div class="acciones">
+              <button type="button" [disabled]="guardando() || cargando()" (click)="editar(item)">Editar</button>
+              <button type="button" [disabled]="guardando() || cargando()" (click)="confirmarId.set(item.id)">Desactivar</button>
+            </div>
+            @if (confirmarId() === item.id) {
+              <div class="confirmacion">
+                <p>¿Desactivar este servicio? No se ofrecerá para nuevos turnos. Se conserva el historial.</p>
+                <div class="acciones">
+                  <button type="button" [disabled]="guardando()" (click)="desactivar(item)">Sí, desactivar</button>
+                  <button type="button" [disabled]="guardando()" (click)="confirmarId.set(null)">Conservar</button>
+                </div>
+              </div>
+            }
+          </article>
+        } @empty { @if (!cargando()) { <p class="mensaje">Todavía no hay servicios activos.</p> } }
+      </div>
+      @if (resultado(); as datos) {
+        @if (datos.totalPaginas > 1) {
+          <nav class="paginacion" aria-label="Páginas de servicios">
+            <button type="button" [disabled]="datos.pagina === 0 || cargando() || guardando()" (click)="cargar(datos.pagina - 1)">Anterior</button>
+            <span>{{ datos.pagina + 1 }} de {{ datos.totalPaginas }}</span>
+            <button type="button" [disabled]="datos.pagina + 1 >= datos.totalPaginas || cargando() || guardando()" (click)="cargar(datos.pagina + 1)">Siguiente</button>
+          </nav>
+        }
+      }
+    </section>
+  }
+</main>

@@ -1,0 +1,160 @@
+<main class="pagina">
+  <header>
+    <a routerLink="/">← Explorar negocios</a>
+    <span class="marca">YAESTÁ<span>.</span></span>
+  </header>
+
+  <div class="titulo">
+    <div>
+      <p class="etiqueta">TU LUGAR EN LA COLA</p>
+      <h1>Mis turnos</h1>
+    </div>
+
+    @if (auth.usuario()?.rol === 'CLIENTE') {
+      <button
+        type="button"
+        [disabled]="cargando() || cancelando()"
+        (click)="cargar()"
+      >
+        {{ cargando() ? 'Actualizando…' : 'Actualizar' }}
+      </button>
+    }
+  </div>
+
+  @if (!auth.usuario()) {
+    <section class="vacio">
+      <h2>Inicia sesión para ver tus turnos</h2>
+      <a routerLink="/login">Iniciar sesión →</a>
+    </section>
+  } @else if (auth.usuario()?.rol !== 'CLIENTE') {
+    <p class="vacio">Esta pantalla es para cuentas de cliente.</p>
+  } @else {
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+
+    @if (cargando()) {
+      <p role="status">Consultando tus turnos…</p>
+    }
+
+    <section class="lista" aria-label="Tus turnos">
+      @for (turno of resultado()?.contenido ?? []; track turno.id) {
+        <article class="turno">
+          <div class="encabezado">
+            <span class="numero">Turno #{{ turno.id }}</span>
+            <span
+              class="estado"
+              [class.llamado]="turno.estado === 'LLAMADO'"
+            >
+              {{ estados[turno.estado] }}
+            </span>
+          </div>
+
+          <h2>{{ turno.negocio }}</h2>
+          <p class="servicio">{{ turno.servicio }}</p>
+
+          @if (turno.estado === 'EN_ESPERA') {
+            <div class="datos">
+              <div>
+                <span>Posición</span>
+                <strong>{{ turno.posicion }}</strong>
+              </div>
+
+              <div>
+                <span>Espera estimada</span>
+                <strong>
+                  @if (turno.esperaEstimadaMinutos !== null) {
+                    {{ turno.esperaEstimadaMinutos }} min
+                  } @else {
+                    Por actualizar
+                  }
+                </strong>
+              </div>
+            </div>
+          }
+
+          @if (turno.estado === 'LLAMADO') {
+            <p class="aviso" role="status">
+              El negocio ya llamó tu turno. Si estás en el local,
+              acércate al personal. Si aún no llegaste, revisa tu plazo
+              de tolerancia con el negocio.
+            </p>
+          }
+
+          @if (puedeCancelar(turno)) {
+            @if (confirmarId() === turno.id) {
+              <div class="confirmacion">
+                <p>¿Quieres cancelar este turno? Perderás tu lugar.</p>
+                <div class="acciones">
+                  <button
+                    type="button"
+                    [disabled]="cancelando() || cargando()"
+                    (click)="cancelar(turno)"
+                  >
+                    Sí, cancelar
+                  </button>
+                  <button
+                    type="button"
+                    [disabled]="cancelando()"
+                    (click)="confirmarId.set(null)"
+                  >
+                    Conservar turno
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <button
+                class="cancelar"
+                type="button"
+                [disabled]="cancelando() || cargando()"
+                (click)="confirmarId.set(turno.id)"
+              >
+                Cancelar turno
+              </button>
+            }
+          }
+        </article>
+      } @empty {
+        @if (!cargando() && !error()) {
+          <div class="vacio">
+            <h2>Todavía no tienes turnos</h2>
+            <p>Explora los negocios y elige tu próximo servicio.</p>
+            <a routerLink="/">Buscar negocios →</a>
+          </div>
+        }
+      }
+    </section>
+
+    @if (resultado(); as datos) {
+      @if (datos.totalPaginas > 1) {
+        <nav class="paginacion" aria-label="Páginas de turnos">
+          <button
+            type="button"
+            [disabled]="datos.pagina === 0 || cargando() || cancelando()"
+            (click)="cargar(datos.pagina - 1)"
+          >
+            Anterior
+          </button>
+
+          <span>{{ datos.pagina + 1 }} de {{ datos.totalPaginas }}</span>
+
+          <button
+            type="button"
+            [disabled]="
+              datos.pagina + 1 >= datos.totalPaginas ||
+              cargando() ||
+              cancelando()
+            "
+            (click)="cargar(datos.pagina + 1)"
+          >
+            Siguiente
+          </button>
+        </nav>
+      }
+    }
+
+    <p class="nota">
+      Se consulta cada 15 segundos mientras esta pantalla está visible. También puedes actualizar manualmente. Los tiempos son estimados.
+    </p>
+  }
+</main>

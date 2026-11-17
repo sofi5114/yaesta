@@ -1,0 +1,169 @@
+<main class="pagina">
+  <p class="etiqueta">UN RECORDATORIO PARA VOLVER</p>
+  <h1>Tu calendario</h1>
+  <p class="descripcion">
+    Fechas sugeridas para tus próximas visitas.
+    No son reservas ni turnos confirmados.
+  </p>
+
+  @if (!auth.usuario()) {
+    <section class="mensaje">
+      <p>Inicia sesión para consultar tu calendario.</p>
+      <a routerLink="/login">Iniciar sesión →</a>
+    </section>
+  } @else if (auth.usuario()?.rol !== 'CLIENTE') {
+    <p class="mensaje">Esta pantalla es para cuentas de cliente.</p>
+  } @else {
+    <div class="distribucion">
+      <section class="calendario" aria-label="Calendario mensual">
+        <header class="mes">
+          <button
+            type="button"
+            aria-label="Mes anterior"
+            [disabled]="cargando() || cancelando() !== null"
+            (click)="cambiarMes(-1)"
+          >
+            ←
+          </button>
+
+          <h2>{{ titulo() }}</h2>
+
+          <button
+            type="button"
+            aria-label="Mes siguiente"
+            [disabled]="cargando() || cancelando() !== null"
+            (click)="cambiarMes(1)"
+          >
+            →
+          </button>
+        </header>
+
+        <div class="cuadricula">
+          @for (nombre of semanas; track $index) {
+            <span class="semana" aria-hidden="true">{{ nombre }}</span>
+          }
+
+          @for (dia of dias(); track $index) {
+            @if (dia) {
+              <button
+                class="dia"
+                type="button"
+                [class.elegido]="fechaElegida() === dia.fecha"
+                [attr.aria-pressed]="fechaElegida() === dia.fecha"
+                [attr.aria-label]="
+                  dia.fecha + ': ' + dia.cantidad + ' recordatorios'
+                "
+                (click)="fechaElegida.set(dia.fecha)"
+              >
+                {{ dia.numero }}
+
+                @if (dia.cantidad > 0) {
+                  <span class="punto" aria-hidden="true"></span>
+                }
+              </button>
+            } @else {
+              <span aria-hidden="true"></span>
+            }
+          }
+        </div>
+
+        <button
+          class="ver-mes"
+          type="button"
+          (click)="fechaElegida.set(null)"
+        >
+          Ver todos los recordatorios del mes
+        </button>
+      </section>
+
+      <section class="recordatorios" aria-label="Recordatorios">
+        <div class="encabezado">
+          <h2>
+            @if (fechaElegida(); as fecha) {
+              {{ fecha | date:'dd/MM/yyyy' }}
+            } @else {
+              Este mes
+            }
+          </h2>
+
+          <button
+            type="button"
+            [disabled]="cargando() || cancelando() !== null"
+            (click)="cargar()"
+          >
+            Actualizar
+          </button>
+        </div>
+
+        @if (error()) {
+          <p class="error" role="alert">{{ error() }}</p>
+        }
+
+        @if (cargando()) {
+          <p role="status">Cargando recordatorios…</p>
+        } @else {
+          @for (item of visibles(); track item.id) {
+            <article class="recordatorio">
+              <div class="fecha">
+                {{ item.fechaProgramada | date:'dd/MM/yyyy' }}
+              </div>
+
+              <h3>{{ item.servicio }}</h3>
+              <p>{{ item.negocio }}</p>
+
+              <span class="estado">{{ item.estado }}</span>
+
+              <div class="acciones">
+                <a [routerLink]="['/negocios', item.negocioId]">
+                  Ver negocio →
+                </a>
+
+                @if (puedeCancelar(item)) {
+                  <button
+                    type="button"
+                    [disabled]="cancelando() !== null"
+                    (click)="confirmarId.set(item.id)"
+                  >
+                    Cancelar recordatorio
+                  </button>
+                }
+              </div>
+
+              @if (confirmarId() === item.id) {
+                <div class="confirmacion">
+                  <p>¿Cancelar este recordatorio?</p>
+
+                  <div class="acciones">
+                    <button
+                      type="button"
+                      [disabled]="cancelando() !== null"
+                      (click)="cancelar(item)"
+                    >
+                      Sí, cancelar
+                    </button>
+
+                    <button
+                      type="button"
+                      [disabled]="cancelando() !== null"
+                      (click)="confirmarId.set(null)"
+                    >
+                      Conservar
+                    </button>
+                  </div>
+                </div>
+              }
+            </article>
+          } @empty {
+            @if (!error()) {
+              <p class="mensaje">
+                No tienes recordatorios para estas fechas.
+                Se generan al completar una atención, si aceptaste
+                recibirlos y el servicio tiene días de recordatorio.
+              </p>
+            }
+          }
+        }
+      </section>
+    </div>
+  }
+</main>

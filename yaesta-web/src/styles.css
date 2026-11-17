@@ -1,0 +1,81 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #fffaf3;
+}
+
+button,
+input {
+  font: inherit;
+}
+.menu-principal {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: min(1280px, 100%);
+  margin-inline: auto;
+  padding: 22px 40px;
+  border-bottom: 1px solid #e9dfd1;
+}
+.logo-menu {
+  flex-shrink: 0;
+  color: #22221f;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  text-decoration: none;
+}
+.logo-menu span {
+  color: #ed910b;
+}
+.enlaces-menu {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.enlaces-menu a,
+.menu-principal > a:not(.logo-menu) {
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: #71695f;
+  font-size: 14px;
+  text-decoration: none;
+}
+.enlaces-menu a.seleccionado {
+  background: #ffedce;
+  color: #805000;
+  font-weight: 700;
+}
+.cuenta-menu {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  margin-left: auto;
+}
+.nombre-menu {
+  max-width: 180px;
+  overflow: hidden;
+  color: #675b4c;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ingresar-menu,
+.cuenta-menu button {
+  padding: 11px 17px;
+  border: 1px solid #edc98e;
+  border-radius: 12px;
+  background: #ffad32;
+  color: #33220b;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}

@@ -1,0 +1,105 @@
+<main class="acceso">
+  <a class="volver" routerLink="/">← Explorar negocios</a>
+
+  <section class="tarjeta">
+    <a class="marca" routerLink="/">YAESTÁ<span>.</span></a>
+
+    @if (creado()) {
+      <h1>Tu cuenta está lista.</h1>
+      <p class="descripcion" role="status">
+        Ya puedes iniciar sesión y sacar tu primer turno.
+      </p>
+
+      <a class="boton" routerLink="/login">Iniciar sesión →</a>
+    } @else {
+      <p class="etiqueta">MENOS COLA, MÁS TIEMPO</p>
+      <h1>Crea tu cuenta.</h1>
+      <p class="descripcion">
+        Encuentra negocios en Trujillo y sigue tus turnos.
+      </p>
+
+      <form #formulario="ngForm" (ngSubmit)="registrar()">
+        <label for="nombre">Nombre</label>
+        <input
+          id="nombre"
+          name="nombre"
+          type="text"
+          autocomplete="name"
+          [(ngModel)]="datos.nombre"
+          required
+          maxlength="100"
+        />
+
+        <label for="correo">Correo electrónico</label>
+        <input
+          id="correo"
+          name="correo"
+          type="email"
+          autocomplete="username"
+          [(ngModel)]="datos.correo"
+          required
+          email
+          maxlength="120"
+        />
+
+        <label for="clave">Contraseña</label>
+        <input
+          id="clave"
+          name="clave"
+          type="password"
+          autocomplete="new-password"
+          aria-describedby="ayuda-clave"
+          [(ngModel)]="datos.clave"
+          required
+          minlength="8"
+          maxlength="72"
+        />
+        <small id="ayuda-clave">Entre 8 y 72 caracteres.</small>
+
+        <label for="confirmarClave">Repite tu contraseña</label>
+        <input
+          id="confirmarClave"
+          name="confirmarClave"
+          type="password"
+          autocomplete="new-password"
+          [(ngModel)]="confirmarClave"
+          required
+          minlength="8"
+          maxlength="72"
+        />
+
+        <label class="opcion" for="recordatorios">
+          <input
+            id="recordatorios"
+            name="recordatorios"
+            type="checkbox"
+            [(ngModel)]="datos.aceptaRecordatorios"
+          />
+          <span>
+            Quiero recibir recordatorios por correo para mis próximas visitas.
+          </span>
+        </label>
+
+        @if (error()) {
+          <p class="error" role="alert">{{ error() }}</p>
+        }
+
+        <button
+          type="submit"
+          [disabled]="
+            formulario.invalid ||
+            !datos.nombre.trim() ||
+            enviando()
+          "
+        >
+          {{ enviando() ? 'Creando cuenta…' : 'Crear cuenta →' }}
+        </button>
+      </form>
+
+      <p class="pie">
+        ¿Ya tienes cuenta?
+        <a routerLink="/login">Inicia sesión</a>
+      </p>
+    }
+  </section>
+</main>

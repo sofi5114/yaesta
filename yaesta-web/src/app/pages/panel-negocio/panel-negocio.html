@@ -1,0 +1,214 @@
+<main class="panel">
+  <a class="volver" routerLink="/">← Volver a negocios</a>
+
+  <p class="etiqueta">GESTIÓN DEL NEGOCIO</p>
+  <h1>{{ negocio()?.nombre ?? 'Panel del negocio' }}</h1>
+
+  @if (!auth.usuario()) {
+  <section class="mensaje">
+    <p>Inicia sesión con tu cuenta de negocio.</p>
+    <a routerLink="/login">Ingresar →</a>
+  </section>
+  } @else if (auth.usuario()?.rol !== 'NEGOCIO') {
+  <p class="mensaje">
+    Esta pantalla es para propietarios de negocios.
+  </p>
+  } @else {
+  @if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  @if (mensaje()) {
+  <p class="exito" role="status">{{ mensaje() }}</p>
+  }
+
+  @if (cargando()) {
+  <p role="status">Actualizando panel…</p>
+  }
+
+  @if (negocio()) {
+  <p><a class="volver" [routerLink]="['/servicios-negocio', negocio()!.id]">Gestionar servicios →</a></p>
+      <section class="configuracion">
+    <div>
+      <h2>Recepción de turnos</h2>
+      <p>Pausar la recepción no cancela los turnos existentes.</p>
+    </div>
+
+    <form #formulario="ngForm" (ngSubmit)="guardarConfiguracion()">
+      <label class="opcion">
+        <input type="checkbox" name="aceptaTurnos" [(ngModel)]="aceptaTurnos" />
+        Recibir nuevos turnos
+      </label>
+
+      <label class="tolerancia" for="tolerancia">
+        Tolerancia de llegada, en minutos
+        <input id="tolerancia" name="tolerancia" type="number" [(ngModel)]="toleranciaMinutos" min="1" max="30" step="1"
+          required />
+      </label>
+
+      <button type="submit" [disabled]="formulario.invalid || cargando() || procesando()">
+        Guardar configuración
+      </button>
+    </form>
+  </section>
+
+  <section class="presencial">
+    <h2>Cliente presencial</h2>
+    <p>
+      Registra a quien llegó al local. Su turno se agrega al final
+      de la misma cola.
+    </p>
+
+    <form #formPresencial="ngForm" (ngSubmit)="registrarPresencial()">
+      <label for="nombrePresencial">Nombre del cliente</label>
+      <input id="nombrePresencial" name="nombrePresencial" type="text" [(ngModel)]="nombrePresencial" maxlength="100"
+        required />
+
+      <label for="servicioPresencial">Servicio</label>
+      <select id="servicioPresencial" name="servicioPresencial" [(ngModel)]="servicioPresencialId"
+        [disabled]="cargandoServicios() || cargando() || procesando()" required>
+        <option [ngValue]="null">Selecciona un servicio</option>
+
+        @for (
+        servicio of serviciosDisponibles()?.contenido ?? [];
+        track servicio.id
+        ) {
+        <option [ngValue]="servicio.id">
+          {{ servicio.nombre }} · S/ {{ servicio.precio.toFixed(2) }}
+        </option>
+        }
+      </select>
+
+      @if (serviciosDisponibles(); as paginaServicios) {
+      @if (paginaServicios.totalPaginas > 1) {
+      <div class="acciones">
+        <button type="button" [disabled]="
+              paginaServicios.pagina === 0 ||
+              cargandoServicios() ||
+              cargando() ||
+              procesando()
+            " (click)="cambiarPaginaServicios(paginaServicios.pagina - 1)">
+          Servicios anteriores
+        </button>
+
+        <span>
+          {{ paginaServicios.pagina + 1 }}
+          de {{ paginaServicios.totalPaginas }}
+        </span>
+
+        <button type="button" [disabled]="
+              paginaServicios.pagina + 1 >= paginaServicios.totalPaginas ||
+              cargandoServicios() ||
+              cargando() ||
+              procesando()
+            " (click)="cambiarPaginaServicios(paginaServicios.pagina + 1)">
+          Más servicios
+        </button>
+      </div>
+      }
+      }
+
+      <button class="principal" type="submit" [disabled]="
+        formPresencial.invalid ||
+        !nombrePresencial.trim() ||
+        cargandoServicios() ||
+        cargando() ||
+        procesando()
+      ">
+        Registrar cliente presencial
+      </button>
+    </form>
+  </section>
+  <section class="cola">
+    <div class="encabezado">
+      <div>
+        <h2>Cola actual</h2>
+        <p>{{ resultado()?.totalElementos }} turnos activos</p>
+      </div>
+
+      <div class="acciones">
+        <button type="button" [disabled]="cargando() || procesando()" (click)="cargar()">
+          Actualizar
+        </button>
+
+        <button class="principal" type="button" [disabled]="cargando() || procesando()" (click)="llamarSiguiente()">
+          Llamar al siguiente
+        </button>
+      </div>
+    </div>
+
+    <div class="lista">
+      @for (turno of resultado()?.contenido ?? []; track turno.id) {
+      <article class="turno">
+        <div class="datos-cliente">
+          <span class="numero">#{{ turno.id }}</span>
+
+          <div>
+            <h3>{{ turno.nombreCliente }}</h3>
+            <p>{{ turno.servicio }}</p>
+            <span class="estado">{{ estados[turno.estado] }}</span>
+          </div>
+        </div>
+
+        <div class="acciones">
+          @if (
+          !turno.llegadaEn &&
+          (turno.estado === 'EN_ESPERA' || turno.estado === 'LLAMADO')
+          ) {
+          <button type="button" [disabled]="procesando() || cargando()" (click)="gestionar(turno, 'llegada')">
+            Confirmar llegada
+          </button>
+          }
+
+          @if (turno.estado === 'LLAMADO' && turno.llegadaEn) {
+          <button class="principal" type="button" [disabled]="procesando() || cargando()"
+            (click)="gestionar(turno, 'inicio')">
+            Iniciar atención
+          </button>
+          }
+
+          @if (turno.estado === 'ATENDIENDO') {
+          <button class="principal" type="button" [disabled]="procesando() || cargando()"
+            (click)="gestionar(turno, 'finalizacion')">
+            Finalizar atención
+          </button>
+          }
+
+          @if (turno.estado === 'LLAMADO' && !turno.llegadaEn) {
+          <button type="button" [disabled]="procesando() || cargando()" (click)="gestionar(turno, 'ausencia')">
+            Marcar ausencia
+          </button>
+          }
+        </div>
+      </article>
+      } @empty {
+      @if (!cargando() && !error()) {
+      <p class="mensaje">No hay turnos activos en esta cola.</p>
+      }
+      }
+    </div>
+
+    @if (resultado(); as datos) {
+    @if (datos.totalPaginas > 1) {
+    <nav class="paginacion" aria-label="Páginas de la cola">
+      <button type="button" [disabled]="datos.pagina === 0 || cargando() || procesando()"
+        (click)="cargar(datos.pagina - 1)">
+        Anterior
+      </button>
+
+      <span>{{ datos.pagina + 1 }} de {{ datos.totalPaginas }}</span>
+
+      <button type="button" [disabled]="
+                  datos.pagina + 1 >= datos.totalPaginas ||
+                  cargando() ||
+                  procesando()
+                " (click)="cargar(datos.pagina + 1)">
+        Siguiente
+      </button>
+    </nav>
+    }
+    }
+  </section>
+  }
+  }
+</main>

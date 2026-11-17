@@ -1,0 +1,26 @@
+<main class="acceso">
+  <section class="tarjeta">
+    <p class="etiqueta">TU CUENTA</p>
+    <h1>Mi perfil</h1>
+    @if (cargando()) { <p role="status">Consultando perfil…</p> }
+    @if (auth.usuario(); as usuario) {
+      <h2>{{ usuario.nombre }}</h2>
+      <p class="descripcion">{{ usuario.correo }}</p>
+      <p class="descripcion">Cuenta de {{ usuario.rol === 'NEGOCIO' ? 'negocio' : 'cliente' }}</p>
+      @if (usuario.rol === 'CLIENTE' && !cargando() && !error()) {
+        <form (ngSubmit)="guardar()">
+          <label class="preferencia">
+            <input type="checkbox" name="recordatorios" [(ngModel)]="aceptaRecordatorios" />
+            <span>Recibir recordatorios por correo para mis próximas visitas.</span>
+          </label>
+          <p class="descripcion">Se generan después de una atención completada. Activarlos no crea recordatorios de atenciones anteriores. Los avisos del turno actual son independientes.</p>
+          <button type="submit" [disabled]="guardando()">
+            {{ guardando() ? 'Guardando…' : 'Guardar preferencia' }}
+          </button>
+        </form>
+      }
+    }
+    @if (mensaje()) { <p role="status" class="descripcion">{{ mensaje() }}</p> }
+    @if (error()) { <p role="alert" class="error">{{ error() }}</p> }
+  </section>
+</main>

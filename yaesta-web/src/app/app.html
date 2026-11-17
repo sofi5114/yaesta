@@ -1,0 +1,152 @@
+<header class="menu-principal">
+  <a class="logo-menu" routerLink="/">YAESTÁ<span>.</span></a>
+
+  <nav class="enlaces-menu" aria-label="Navegación principal">
+    <a routerLink="/" routerLinkActive="seleccionado" [routerLinkActiveOptions]="{ exact: true }"
+      ariaCurrentWhenActive="page">
+      {{ auth.usuario()?.rol === 'NEGOCIO' ? 'Mis negocios' : 'Descubrir' }}
+    </a>
+
+    @if (auth.usuario()?.rol === 'CLIENTE') {
+    <a routerLink="/turnos" routerLinkActive="seleccionado" ariaCurrentWhenActive="page">
+      Mis turnos
+    </a>
+
+    <a routerLink="/calendario" routerLinkActive="seleccionado" ariaCurrentWhenActive="page">
+      Calendario
+    </a>
+    }
+  </nav>
+
+  @if (auth.usuario()) {
+      <a routerLink="/perfil" routerLinkActive="seleccionado">Mi perfil</a>
+    }
+    <div class="cuenta-menu">
+    @if (auth.usuario(); as usuario) {
+    <span class="nombre-menu">
+      {{ usuario.nombre }} · {{ usuario.rol }}
+    </span>
+
+    <button type="button" (click)="cerrarSesion()">
+      Salir
+    </button>
+    } @else {
+    <a class="ingresar-menu" routerLink="/login">
+      Ingresar
+    </a>
+    }
+  </div>
+</header>
+
+<router-outlet #pantalla="outlet"></router-outlet>
+
+@if (!pantalla.isActivated) {
+<div class="aplicacion">
+  <main>
+    <section class="introduccion">
+      <p class="etiqueta">TU TIEMPO TAMBIÉN CUENTA</p>
+      <h1>
+        {{ auth.usuario()?.rol === 'NEGOCIO'
+        ? 'Gestiona tu negocio'
+        : '¿Qué necesitas hoy?' }}
+      </h1>
+      <p class="descripcion">
+        {{ auth.usuario()?.rol === 'NEGOCIO'
+        ? 'Administra tu cola y organiza la atención de tus clientes.'
+        : 'Encuentra tu negocio y únete a su cola virtual.' }}
+      </p>
+    </section>
+
+    <label class="buscador">
+      <span aria-hidden="true">⌕</span>
+      <input type="search" aria-label="Buscar negocios, servicios o distritos" placeholder="Buscar negocios o distritos"
+        [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
+    </label>
+
+    <nav class="categorias" aria-label="Categorías de negocios">
+      @for (opcion of categorias; track opcion) {
+      <button type="button" [class.activa]="categoria() === opcion" [attr.aria-pressed]="categoria() === opcion"
+        (click)="categoria.set(opcion)">
+        {{ opcion }}
+      </button>
+      }
+    </nav>
+
+    <section class="catalogo" aria-labelledby="titulo-negocios">
+      <div class="titulo-seccion">
+        <h2 id="titulo-negocios">
+          {{ auth.usuario()?.rol === 'NEGOCIO'
+          ? 'Mis negocios'
+          : 'Descubre Trujillo' }}
+        </h2>
+        @if (!cargando() && !error()) {
+        <span>{{ filtrados().length }} negocios</span>
+        }
+      </div>
+
+      @if (cargando()) {
+      <p class="mensaje" role="status">Buscando negocios…</p>
+      } @else if (error()) {
+      <div class="mensaje" role="alert">
+        <p>{{ error() }}</p>
+        <button class="reintentar" type="button" (click)="cargar()">
+          Volver a intentar
+        </button>
+      </div>
+      } @else {
+      <div class="lista">
+        @for (negocio of filtrados(); track negocio.id) {
+        <article class="tarjeta">
+          <div class="portada" aria-hidden="true">
+            <span class="iniciales">
+              {{ iniciales(negocio.nombre) }}
+            </span>
+            <span class="categoria-tarjeta">
+              {{ negocio.categoria }}
+            </span>
+          </div>
+
+          <div class="contenido">
+            <h3>{{ negocio.nombre }}</h3>
+            <p>{{ negocio.distrito }} · Trujillo</p>
+
+            <div class="pie-tarjeta">
+              <span class="distintivo">Negocio en YAESTÁ</span>
+
+              <a class="ver-servicios" [routerLink]="['/negocios', negocio.id]"
+                [attr.aria-label]="'Ver servicios de ' + negocio.nombre">
+                Ver servicios →
+              </a>
+
+              @if (auth.usuario()?.rol === 'NEGOCIO') {
+              <a class="ver-servicios" [routerLink]="['/panel-negocio', negocio.id]">
+                Gestionar cola
+              </a>
+              }
+            </div>
+          </div>
+        </article>
+        } @empty {
+        <div class="mensaje">
+          <h3>No encontramos negocios</h3>
+          <p>Prueba con otro nombre, distrito o categoría.</p>
+        </div>
+        }
+      </div>
+      }
+    </section>
+
+    <aside class="nota">
+      <span aria-hidden="true">◷</span>
+      <p>
+        Tu lugar en la cola, desde donde estés.
+        <strong>Tu tiempo también cuenta.</strong>
+      </p>
+    </aside>
+  </main>
+
+  <footer>
+    Hecho para aprovechar mejor tu tiempo en Trujillo.
+  </footer>
+</div>
+}

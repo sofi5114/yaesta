@@ -1,0 +1,58 @@
+<main class="acceso">
+  <a class="volver" routerLink="/">← Explorar negocios</a>
+
+  <section class="tarjeta">
+    <a class="marca" routerLink="/">YAESTÁ<span>.</span></a>
+
+    <p class="etiqueta">TU TIEMPO TAMBIÉN CUENTA</p>
+    <h1>Qué bueno verte.</h1>
+    <p class="descripcion">
+      Inicia sesión para sacar tu turno y seguir su avance.
+    </p>
+
+    <form #formulario="ngForm" (ngSubmit)="ingresar()">
+      <label for="correo">Correo electrónico</label>
+      <input
+        id="correo"
+        name="correo"
+        type="email"
+        autocomplete="username"
+        placeholder="Tu correo"
+        [(ngModel)]="correo"
+        required
+        email
+        maxlength="120"
+      />
+
+      <label for="clave">Contraseña</label>
+      <input
+        id="clave"
+        name="clave"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Tu contraseña"
+        [(ngModel)]="clave"
+        required
+        maxlength="72"
+      />
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="formulario.invalid || enviando()"
+      >
+        {{ enviando() ? 'Ingresando…' : 'Iniciar sesión →' }}
+      </button>
+    </form>
+
+    <p class="pie">Menos cola. Más tiempo para ti.</p>
+  <p class="pie">
+  ¿Todavía no tienes cuenta?
+  <a routerLink="/registro">Crear cuenta</a>
+</p>
+
+</section>
+</main>
