@@ -1,0 +1,233 @@
+<main class="plus">
+  <a routerLink="/">← Volver</a>
+  <app-vista-cabecera
+    [titulo]="auth.usuario()?.rol === 'NEGOCIO' ? 'YAESTÁ Negocio Plus' : 'YAESTÁ Cliente Plus'"
+    etiqueta="MÁS POSIBILIDADES PARA TU DÍA"
+    descripcion="Descubre los beneficios que encajan contigo. Tú eliges cómo vivir tu experiencia con YAESTÁ."
+    [foto]="0"
+  />
+  @if (auth.usuario()?.rol === 'NEGOCIO') {
+    <label
+      >Tu negocio
+      <select [disabled]="ocupado()" [(ngModel)]="negocioId" (ngModelChange)="cargar()">
+        @for (n of negocios(); track n.id) {
+          <option [ngValue]="n.id">{{ n.nombre }}</option>
+        }
+      </select></label
+    >
+    <p>
+      Conecta con tus seguidores y ofrece beneficios para recibir clientes que buscan una
+      alternativa.
+    </p>
+    <strong class="precio">
+      @if (planes()?.negocioMensual !== null && planes()?.negocioMensual !== undefined) {
+        {{ planes()?.negocioMensual | currency: 'PEN' : 'S/ ' }} al mes
+      } @else {
+        Precio por definir
+      }
+    </strong>
+  } @else {
+    <p>Más flexibilidad para organizar tu atención.</p>
+    <strong class="precio">
+      @if (planes(); as p) {
+        {{ p.clienteMensual | currency: 'PEN' : 'S/ ' }} <small>al mes</small>
+      } @else {
+        Consultando precio…
+      }
+    </strong>
+    <p>
+      Intercambia tu lugar con otro miembro Plus que acepte, en el mismo servicio y con igual
+      duración. Un cambio por turno, antes de confirmar llegada.
+    </p>
+    <p class="nota">
+      El saldo promocional está pendiente de habilitación. Todavía no se ofrece como beneficio
+      contratado.
+    </p>
+  }
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (mensaje()) {
+    <p class="exito" role="status">{{ mensaje() }}</p>
+  }
+  @if (estado(); as e) {
+    <section class="tarjeta">
+      <h2>{{ e.activa ? 'Plus activo' : 'Tu membresía' }}</h2>
+      @if (e.venceEn) {
+        <p>
+          {{ e.activa ? 'Vigente hasta' : 'Finalizó el' }}
+          {{ e.venceEn | date: 'dd/MM/yyyy HH:mm' }}
+        </p>
+      }
+      @if (e.demostracion) {
+        <p class="nota">Prueba sin cobros ni renovación automática.</p>
+      }
+      @if (e.permitePrueba) {
+        <button [disabled]="ocupado()" (click)="prueba()">
+          Activar prueba de 30 días sin cobro
+        </button>
+      }
+      @if (!e.activa && !e.permitePrueba) {
+        <p>Contratación disponible próximamente.</p>
+      }
+      @if (e.activa && e.demostracion) {
+        @if (confirmarCancelacion) {
+          <p>¿Finalizar ahora tu prueba?</p>
+          <button [disabled]="ocupado()" (click)="cancelar()">Sí, finalizar</button
+          ><button (click)="confirmarCancelacion = false">Conservar</button>
+        } @else {
+          <button (click)="confirmarCancelacion = true">Finalizar prueba</button>
+        }
+      }
+    </section>
+    @if (auth.usuario()?.rol === 'NEGOCIO') {
+      <section class="tarjeta">
+        <h2>Tu canal · {{ e.seguidores }} seguidores</h2>
+        @if (e.activa) {
+          <form (ngSubmit)="publicar()">
+            <label
+              >Título<input name="titulo" [(ngModel)]="titulo" required maxlength="100" /></label
+            ><label
+              >Novedad<textarea
+                name="texto"
+                [(ngModel)]="texto"
+                required
+                maxlength="1000"
+              ></textarea></label
+            ><label
+              >Días de vigencia<input
+                name="dias"
+                type="number"
+                min="1"
+                max="30"
+                [(ngModel)]="dias"
+                required /></label
+            ><button [disabled]="ocupado()">Publicar novedad</button>
+          </form>
+          <p class="nota">
+            Hasta tres publicaciones en 24 horas. Tus seguidores las ven en Mis negocios.
+          </p>
+        }
+      </section>
+      <section class="tarjeta">
+        <h2>Recibe clientes cercanos</h2>
+        <p>
+          Confirma la ubicación y disponibilidad del local. Solo recomendamos información confirmada
+          en los últimos 10 minutos.
+        </p>
+        <button type="button" (click)="ubicar()">Usar mi ubicación actual</button>
+        <form (ngSubmit)="guardarUbicacion()">
+          <label
+            >Latitud<input
+              name="lat"
+              type="number"
+              step="any"
+              min="-90"
+              max="90"
+              [(ngModel)]="latitud"
+              required /></label
+          ><label
+            >Longitud<input
+              name="lon"
+              type="number"
+              step="any"
+              min="-180"
+              max="180"
+              [(ngModel)]="longitud"
+              required
+          /></label>
+          @if (e.activa) {
+            <label
+              >Descuento por derivación (%)<input
+                name="descuento"
+                type="number"
+                min="0"
+                max="30"
+                [(ngModel)]="descuento" /></label
+            ><label
+              >Cupos con beneficio<input
+                name="cupos"
+                type="number"
+                min="0"
+                max="100"
+                [(ngModel)]="cupos"
+            /></label>
+            <p class="nota">
+              El local financia el descuento. Cada derivación confirmada consume un cupo; puedes
+              habilitar más manualmente. Aplica al servicio completo y no se combina con saldo.
+            </p>
+          }
+          <button [disabled]="ocupado()">Confirmar disponibilidad</button>
+        </form>
+      </section>
+    } @else {
+      <section class="tarjeta">
+        <h2>Intercambio de turnos</h2>
+        <a routerLink="/turnos">Consultar mis números de turno</a>
+        @if (e.activa) {
+          <form (ngSubmit)="proponer()">
+            <label
+              >Mi turno #<input
+                name="origen"
+                type="number"
+                min="1"
+                [(ngModel)]="origenId"
+                required /></label
+            ><label
+              >Turno de la otra persona #<input
+                name="destino"
+                type="number"
+                min="1"
+                [(ngModel)]="destinoId"
+                required /></label
+            ><button [disabled]="ocupado()">Proponer intercambio</button>
+          </form>
+        }
+        <button (click)="cargarIntercambios()">Actualizar propuestas</button>
+        @for (i of propuestas(); track i.id) {
+          <article>
+            <p>#{{ i.origenId }} ↔ #{{ i.destinoId }} · {{ i.estado }}</p>
+            <small>Vence {{ i.venceEn | date: 'HH:mm' }}</small>
+            @if (i.estado === 'PENDIENTE') {
+              @if (i.recibido) {
+                <button [disabled]="ocupado()" (click)="resolver(i.id, true)">Aceptar</button>
+              }
+              <button [disabled]="ocupado()" (click)="resolver(i.id, false)">
+                {{ i.recibido ? 'Rechazar' : 'Cancelar propuesta' }}
+              </button>
+            }
+          </article>
+        }
+      </section>
+    }
+  }
+  <section class="tarjeta">
+    <h2>{{ negocioId ? 'Publicaciones de tu negocio' : 'Mis negocios · Novedades' }}</h2>
+    @for (p of publicaciones()?.contenido ?? []; track p.id) {
+      <article>
+        <a [routerLink]="['/negocios', p.negocioId]">{{ p.negocio }}</a>
+        <h3>{{ p.titulo }}</h3>
+        <p class="texto">{{ p.mensaje }}</p>
+        <small>Hasta {{ p.venceEn | date: 'dd/MM/yyyy HH:mm' }}</small>
+        @if (negocioId) {
+          <button [disabled]="ocupado()" (click)="borrar(p.id)">Retirar</button>
+        }
+      </article>
+    } @empty {
+      <p>Aquí aparecerán las novedades vigentes. Seguir negocios es gratis.</p>
+    }
+    @if (publicaciones(); as p) {
+      @if (p.totalPaginas > 1) {
+        <button [disabled]="p.pagina === 0" (click)="cargarPublicaciones(p.pagina - 1)">
+          Anterior</button
+        ><span>{{ p.pagina + 1 }} / {{ p.totalPaginas }}</span
+        ><button
+          [disabled]="p.pagina + 1 >= p.totalPaginas"
+          (click)="cargarPublicaciones(p.pagina + 1)"
+        >
+          Siguiente
+        </button>
+      }
+    }
+  </section>
+</main>

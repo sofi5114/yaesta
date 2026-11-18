@@ -9,7 +9,7 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   imports: [FormsModule, RouterLink],
   templateUrl: './login.html',
-  styleUrl: './login.css'
+  styleUrl: './login.css',
 })
 export class Login {
   private readonly auth = inject(AuthService);
@@ -35,7 +35,10 @@ export class Login {
         this.clave = '';
         this.enviando.set(false);
         const volver = this.ruta.snapshot.queryParamMap.get('volver') ?? '/';
-        const interna = /^\/(?:$|turnos$|calendario$|perfil$|negocios\/[1-9]\d*$|panel-negocio\/[1-9]\d*$|servicios-negocio\/[1-9]\d*$)/.test(volver);
+        const interna =
+          /^\/(?:$|turnos$|calendario$|perfil$|plus$|siguiendo$|negocios\/[1-9]\d*$|panel-negocio\/[1-9]\d*$|servicios-negocio\/[1-9]\d*$)/.test(
+            volver,
+          );
         void this.router.navigateByUrl(interna ? volver : '/');
       },
       error: (respuesta: HttpErrorResponse) => {
@@ -45,9 +48,9 @@ export class Login {
         this.error.set(
           respuesta.status === 0 || respuesta.status >= 500
             ? 'No pudimos conectar con el servidor. Intenta nuevamente.'
-            : 'No pudimos iniciar sesión. Revisa tu correo y contraseña.'
+            : 'No pudimos iniciar sesión. Revisa tu correo y contraseña.',
         );
-      }
+      },
     });
   }
 }

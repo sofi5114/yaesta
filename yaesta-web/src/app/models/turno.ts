@@ -18,4 +18,8 @@ export interface Turno {
     llegadaEn: string | null;
     llamadoEn: string | null;
     toleranciaMinutos: number;
+    finEstimado: string | null;
+    noLlamarAntesDe: string | null;
+    demoraSignificativa: boolean;
+    esperaInicialMinutos: number | null;
 }

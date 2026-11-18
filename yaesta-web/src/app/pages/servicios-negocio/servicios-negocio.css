@@ -1,4 +1,22 @@
 @import '../panel-negocio/panel-negocio.css';
-form input { width:100%; padding:12px; border:1px solid #d9c6aa; border-radius:10px; background:#fffdf9; font:inherit; }
-form label { font-size:13px; font-weight:700; }
-.confirmacion { width:100%; padding:16px; border-radius:14px; background:#fff0cf; color:#70501b; font-size:13px; line-height:1.7; }
+form input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d9c6aa;
+  border-radius: 10px;
+  background: #fffdf9;
+  font: inherit;
+}
+form label {
+  font-size: 13px;
+  font-weight: 700;
+}
+.confirmacion {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  background: #fff0cf;
+  color: #70501b;
+  font-size: 13px;
+  line-height: 1.7;
+}

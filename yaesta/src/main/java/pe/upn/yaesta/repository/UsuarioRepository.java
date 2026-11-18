@@ -1,14 +1,16 @@
 package pe.upn.yaesta.repository;
 
 import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import pe.upn.yaesta.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    Optional<Usuario> findByCorreo(String correo);
+  @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+  @org.springframework.data.jpa.repository.Query("select u from Usuario u where u.id = :id")
+  Optional<Usuario> bloquearPorId(@org.springframework.data.repository.query.Param("id") Long id);
 
-    boolean existsByCorreo(String correo);
+  Optional<Usuario> findByCorreo(String correo);
+
+  boolean existsByCorreo(String correo);
 }

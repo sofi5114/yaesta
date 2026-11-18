@@ -21,14 +21,14 @@ small {
   width: 19px;
   height: 19px;
   margin-top: 2px;
-  accent-color: #a85d00;
+  accent-color: #a54f35;
 }
 
 .boton {
   display: block;
   padding: 16px;
   border-radius: 12px;
-  background: #ffad32;
+  background: #a54f35;
   color: #33220b;
   font-weight: 700;
   text-align: center;
@@ -36,5 +36,5 @@ small {
 }
 
 .pie a {
-  color: #835000;
+  color: #99513a;
 }

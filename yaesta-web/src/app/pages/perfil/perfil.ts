@@ -1,3 +1,4 @@
+import { VistaCabecera } from '../../shared/vista-cabecera';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -6,9 +7,9 @@ import { PerfilService } from '../../services/perfil.service';
 
 @Component({
   selector: 'app-perfil',
-  imports: [FormsModule],
+  imports: [VistaCabecera, FormsModule],
   templateUrl: './perfil.html',
-  styleUrl: './perfil.css'
+  styleUrl: './perfil.css',
 })
 export class Perfil {
   readonly auth = inject(AuthService);
@@ -23,25 +24,19 @@ export class Perfil {
 
   constructor() {
     this.servicio.consultar().subscribe({
-      next: usuario => {
+      next: (usuario) => {
         this.aceptaRecordatorios = usuario.aceptaRecordatorios;
         this.cargando.set(false);
       },
       error: () => {
-        this.error.set(
-          'No pudimos consultar tu perfil. Si venció tu sesión, vuelve a ingresar.'
-        );
+        this.error.set('No pudimos consultar tu perfil. Si venció tu sesión, vuelve a ingresar.');
         this.cargando.set(false);
-      }
+      },
     });
   }
 
   guardar() {
-    if (
-      this.guardando() ||
-      this.cargando() ||
-      this.auth.usuario()?.rol !== 'CLIENTE'
-    ) {
+    if (this.guardando() || this.cargando() || this.auth.usuario()?.rol !== 'CLIENTE') {
       return;
     }
 
@@ -50,21 +45,19 @@ export class Perfil {
     this.mensaje.set('');
 
     this.servicio.preferencias(this.aceptaRecordatorios).subscribe({
-      next: usuario => {
+      next: (usuario) => {
         this.guardando.set(false);
 
         this.mensaje.set(
           usuario.aceptaRecordatorios
             ? 'Preferencia guardada. Se aplicará a tus próximas atenciones.'
-            : 'Recordatorios desactivados. Los pendientes que aún podían cancelarse fueron cancelados.'
+            : 'Recordatorios desactivados. Los pendientes que aún podían cancelarse fueron cancelados.',
         );
       },
       error: () => {
         this.guardando.set(false);
-        this.error.set(
-          'No pudimos guardar el cambio. Intenta nuevamente.'
-        );
-      }
+        this.error.set('No pudimos guardar el cambio. Intenta nuevamente.');
+      },
     });
   }
 }

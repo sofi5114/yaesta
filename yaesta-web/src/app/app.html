@@ -1,152 +1,249 @@
-<header class="menu-principal">
-  <a class="logo-menu" routerLink="/">YAESTÁ<span>.</span></a>
-
-  <nav class="enlaces-menu" aria-label="Navegación principal">
-    <a routerLink="/" routerLinkActive="seleccionado" [routerLinkActiveOptions]="{ exact: true }"
-      ariaCurrentWhenActive="page">
-      {{ auth.usuario()?.rol === 'NEGOCIO' ? 'Mis negocios' : 'Descubrir' }}
+<a class="saltar" [href]="router.url.split('#')[0] + '#contenido'">Saltar al contenido</a>
+<header class="cabecera">
+  <div class="cabecera-interior">
+    <a class="logo" routerLink="/" aria-label="YAESTÁ, inicio">
+      <svg viewBox="0 0 88 60" aria-hidden="true">
+        <path d="M28 18a23 23 0 1 1-3 25M5 24h20M1 34h19M8 44h13" />
+        <path d="M51 13v19l11 7" /></svg
+      ><span>YAESTÁ</span>
     </a>
-
-    @if (auth.usuario()?.rol === 'CLIENTE') {
-    <a routerLink="/turnos" routerLinkActive="seleccionado" ariaCurrentWhenActive="page">
-      Mis turnos
-    </a>
-
-    <a routerLink="/calendario" routerLinkActive="seleccionado" ariaCurrentWhenActive="page">
-      Calendario
-    </a>
-    }
-  </nav>
-
-  @if (auth.usuario()) {
-      <a routerLink="/perfil" routerLinkActive="seleccionado">Mi perfil</a>
-    }
-    <div class="cuenta-menu">
+    <span class="ubicacion"><span aria-hidden="true">⌖</span> Trujillo, Perú</span>
+    <nav aria-label="Navegación principal">
+      <a
+        routerLink="/"
+        routerLinkActive="actual"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+        >{{ auth.usuario()?.rol === 'NEGOCIO' ? 'Mis negocios' : 'Explorar' }}</a
+      >
+      @if (auth.usuario()?.rol !== 'NEGOCIO') {
+        <a routerLink="/turnos" routerLinkActive="actual" ariaCurrentWhenActive="page">Mi turno</a>
+        <a routerLink="/siguiendo" routerLinkActive="actual" ariaCurrentWhenActive="page"
+          >Mis negocios</a
+        >
+        <a routerLink="/calendario" routerLinkActive="actual" ariaCurrentWhenActive="page"
+          >Calendario</a
+        >
+      }
+      <a routerLink="/plus" routerLinkActive="actual" ariaCurrentWhenActive="page"
+        >YAESTÁ Plus <span class="estrella" aria-hidden="true">✧</span></a
+      >
+    </nav>
     @if (auth.usuario(); as usuario) {
-    <span class="nombre-menu">
-      {{ usuario.nombre }} · {{ usuario.rol }}
-    </span>
-
-    <button type="button" (click)="cerrarSesion()">
-      Salir
-    </button>
+      <details class="cuenta">
+        <summary>
+          <span class="avatar">{{ iniciales(usuario.nombre) }}</span
+          ><span>Hola, {{ usuario.nombre.split(' ')[0] }}</span
+          ><span aria-hidden="true">⌄</span>
+        </summary>
+        <div class="cuenta-opciones">
+          <a routerLink="/perfil">Mi perfil</a><a routerLink="/plus">Mi membresía</a
+          ><button (click)="cerrarSesion()">Cerrar sesión</button>
+        </div>
+      </details>
     } @else {
-    <a class="ingresar-menu" routerLink="/login">
-      Ingresar
-    </a>
+      <a class="ingresar" routerLink="/login">Ingresar <span aria-hidden="true">↗</span></a>
     }
   </div>
 </header>
-
-<router-outlet #pantalla="outlet"></router-outlet>
-
+<div id="contenido" class="interior" [class.ruta-activa]="pantalla.isActivated">
+  <router-outlet #pantalla="outlet" />
+</div>
 @if (!pantalla.isActivated) {
-<div class="aplicacion">
-  <main>
-    <section class="introduccion">
-      <p class="etiqueta">TU TIEMPO TAMBIÉN CUENTA</p>
-      <h1>
-        {{ auth.usuario()?.rol === 'NEGOCIO'
-        ? 'Gestiona tu negocio'
-        : '¿Qué necesitas hoy?' }}
-      </h1>
-      <p class="descripcion">
-        {{ auth.usuario()?.rol === 'NEGOCIO'
-        ? 'Administra tu cola y organiza la atención de tus clientes.'
-        : 'Encuentra tu negocio y únete a su cola virtual.' }}
-      </p>
-    </section>
-
-    <label class="buscador">
-      <span aria-hidden="true">⌕</span>
-      <input type="search" aria-label="Buscar negocios, servicios o distritos" placeholder="Buscar negocios o distritos"
-        [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
-    </label>
-
-    <nav class="categorias" aria-label="Categorías de negocios">
-      @for (opcion of categorias; track opcion) {
-      <button type="button" [class.activa]="categoria() === opcion" [attr.aria-pressed]="categoria() === opcion"
-        (click)="categoria.set(opcion)">
-        {{ opcion }}
-      </button>
-      }
-    </nav>
-
-    <section class="catalogo" aria-labelledby="titulo-negocios">
-      <div class="titulo-seccion">
-        <h2 id="titulo-negocios">
-          {{ auth.usuario()?.rol === 'NEGOCIO'
-          ? 'Mis negocios'
-          : 'Descubre Trujillo' }}
-        </h2>
-        @if (!cargando() && !error()) {
-        <span>{{ filtrados().length }} negocios</span>
-        }
+  <main class="inicio">
+    <section class="hero" aria-labelledby="titulo-inicio">
+      <div class="hero-texto">
+        <p class="antetitulo"><span></span> TU TIEMPO TAMBIÉN CUENTA</p>
+        <h1 id="titulo-inicio">
+          @if (auth.usuario()?.rol === 'NEGOCIO') {
+            Gestiona tu negocio.<br /><em>Conecta con tu gente.</em>
+          } @else {
+            Tu tiempo vale.<br /><em>Elige dónde vivirlo.</em>
+          }
+        </h1>
+        <p class="hero-descripcion">
+          {{
+            auth.usuario()?.rol === 'NEGOCIO'
+              ? 'Organiza tu atención, gestiona tu cola y mantente cerca de tus clientes.'
+              : 'Encuentra atención cerca de ti y sigue tu turno desde donde estés.'
+          }}
+        </p>
+        <form class="buscador" role="search" (submit)="buscar($event)">
+          <label class="campo-busqueda"
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="10" cy="10" r="7" />
+              <path d="m15 15 6 6" /></svg
+            ><input
+              type="search"
+              aria-label="Buscar negocios o categorías"
+              placeholder="¿Qué necesitas?"
+              [value]="busqueda()"
+              (input)="busqueda.set($any($event.target).value)"
+          /></label>
+          <label class="campo-distrito"
+            ><span aria-hidden="true">⌖</span
+            ><select
+              aria-label="Filtrar por distrito"
+              [value]="distrito()"
+              (change)="distrito.set($any($event.target).value)"
+            >
+              <option value="">Todo Trujillo</option>
+              @for (d of distritos(); track d) {
+                <option [value]="d">{{ d }}</option>
+              }
+            </select></label
+          >
+          <button type="submit">Buscar <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="hero-pie">
+          <span aria-hidden="true">◷</span> Tu lugar en la cola, desde donde estés.
+        </p>
       </div>
-
-      @if (cargando()) {
-      <p class="mensaje" role="status">Buscando negocios…</p>
-      } @else if (error()) {
-      <div class="mensaje" role="alert">
-        <p>{{ error() }}</p>
-        <button class="reintentar" type="button" (click)="cargar()">
-          Volver a intentar
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hero-foto hero-restaurante">
+          <div class="foto f-0"></div>
+          <span>Un lugar para compartir.</span>
+        </div>
+        <div class="hero-foto hero-belleza">
+          <div class="foto f-3"></div>
+          <span>Un momento para ti.</span>
+        </div>
+        <div class="reloj-hero">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="44" />
+            <path d="M50 22v29l21 12" />
+          </svg>
+        </div>
+        <div class="ticket-hero">
+          <span class="ticket-icono">◷</span>
+          <div>
+            <strong>Tu turno. Tu tiempo.</strong><span>La espera se consulta a distancia.</span>
+          </div>
+          <span class="ticket-check">✓</span>
+        </div>
+      </div>
+    </section>
+    <section class="seccion-categorias" aria-labelledby="titulo-categorias">
+      <div class="encabezado-seccion">
+        <h2 id="titulo-categorias">¿Qué necesitas hoy?</h2>
+        <button class="enlace" (click)="limpiar()">
+          Ver todo <span aria-hidden="true">↗</span>
         </button>
       </div>
-      } @else {
-      <div class="lista">
-        @for (negocio of filtrados(); track negocio.id) {
-        <article class="tarjeta">
-          <div class="portada" aria-hidden="true">
-            <span class="iniciales">
-              {{ iniciales(negocio.nombre) }}
-            </span>
-            <span class="categoria-tarjeta">
-              {{ negocio.categoria }}
-            </span>
-          </div>
-
-          <div class="contenido">
-            <h3>{{ negocio.nombre }}</h3>
-            <p>{{ negocio.distrito }} · Trujillo</p>
-
-            <div class="pie-tarjeta">
-              <span class="distintivo">Negocio en YAESTÁ</span>
-
-              <a class="ver-servicios" [routerLink]="['/negocios', negocio.id]"
-                [attr.aria-label]="'Ver servicios de ' + negocio.nombre">
-                Ver servicios →
-              </a>
-
-              @if (auth.usuario()?.rol === 'NEGOCIO') {
-              <a class="ver-servicios" [routerLink]="['/panel-negocio', negocio.id]">
-                Gestionar cola
-              </a>
-              }
-            </div>
-          </div>
-        </article>
-        } @empty {
-        <div class="mensaje">
-          <h3>No encontramos negocios</h3>
-          <p>Prueba con otro nombre, distrito o categoría.</p>
-        </div>
+      <nav class="categorias" aria-label="Categorías de negocios">
+        @for (c of categorias; track c.nombre) {
+          <button
+            class="categoria"
+            [class.elegida]="categoria() === c.nombre"
+            [attr.aria-pressed]="categoria() === c.nombre"
+            (click)="elegirCategoria(c.nombre)"
+          >
+            <span class="categoria-foto"
+              ><span [class]="'foto f-' + c.foto"></span
+              ><span class="categoria-check" aria-hidden="true">✓</span></span
+            ><span>{{ c.nombre }}</span>
+          </button>
         }
+      </nav>
+    </section>
+    <section id="catalogo" class="catalogo" aria-labelledby="titulo-catalogo">
+      <div class="encabezado-seccion encabezado-catalogo">
+        <div>
+          <p class="antetitulo">ENCUENTRA TU PRÓXIMA ATENCIÓN</p>
+          <h2 id="titulo-catalogo">
+            {{
+              auth.usuario()?.rol === 'NEGOCIO'
+                ? 'Mis negocios'
+                : categoria() === 'Todos'
+                  ? 'Cerca de ti, a tu ritmo'
+                  : categoria()
+            }}
+          </h2>
+        </div>
+        <div class="filtros">
+          <button [class.activo]="orden() === 'recomendados'" (click)="orden.set('recomendados')">
+            Todos los locales</button
+          ><button [class.activo]="orden() === 'nombre'" (click)="orden.set('nombre')">
+            A – Z
+          </button>
+          @if (categoria() !== 'Todos' || busqueda() || distrito()) {
+            <button (click)="limpiar()">Limpiar filtros ×</button>
+          }
+        </div>
       </div>
+      @if (cargando()) {
+        <p class="estado-catalogo" role="status">Buscando tu próximo lugar…</p>
+      } @else if (error()) {
+        <div class="estado-catalogo" role="alert">
+          <h3>No pudimos conectar</h3>
+          <p>{{ error() }}</p>
+          <button (click)="cargar()">Volver a intentar</button>
+        </div>
+      } @else {
+        <p class="cantidad" aria-live="polite">
+          {{ filtrados().length }}
+          {{
+            filtrados().length === 1
+              ? 'local disponible en el catálogo'
+              : 'locales disponibles en el catálogo'
+          }}
+        </p>
+        <div class="locales">
+          @for (n of filtrados(); track n.id) {
+            <article class="local">
+              <div class="local-portada">
+                <div [class]="'foto ' + fotoClase(n)"></div>
+                <span class="tipo-local">{{ n.categoria }}</span
+                ><span class="referencial">Imagen referencial</span>
+                <div class="local-contenido">
+                  <div>
+                    <h3>{{ n.nombre }}</h3>
+                    <p><span aria-hidden="true">⌖</span> {{ n.distrito }}</p>
+                  </div>
+                  <a [routerLink]="['/negocios', n.id]" [attr.aria-label]="'Ver local ' + n.nombre"
+                    >Ver local <span aria-hidden="true">↗</span></a
+                  >
+                </div>
+              </div>
+              @if (auth.usuario()?.rol === 'NEGOCIO') {
+                <div class="local-gestion">
+                  <a [routerLink]="['/panel-negocio', n.id]">Gestionar cola →</a
+                  ><a [routerLink]="['/servicios-negocio', n.id]">Servicios →</a>
+                </div>
+              }
+            </article>
+          } @empty {
+            <div class="estado-catalogo">
+              <span class="vacio-icono" aria-hidden="true">⌕</span>
+              <h3>Aún no hay locales para esta búsqueda</h3>
+              <p>Prueba otra categoría o distrito. Seguiremos ampliando los negocios de YAESTÁ.</p>
+              <button (click)="limpiar()">Explorar todos los locales</button>
+            </div>
+          }
+        </div>
       }
     </section>
-
-    <aside class="nota">
-      <span aria-hidden="true">◷</span>
-      <p>
-        Tu lugar en la cola, desde donde estés.
-        <strong>Tu tiempo también cuenta.</strong>
-      </p>
-    </aside>
+    <section class="descubre-mas" aria-label="Más de YAESTÁ">
+      <div class="alternativas-banner">
+        <svg viewBox="0 0 88 60" aria-hidden="true">
+          <path d="M28 18a23 23 0 1 1-3 25M5 24h20M1 34h19M8 44h13M51 13v19l11 7" />
+        </svg>
+        <div>
+          <h2>¿Tu espera cambió?</h2>
+          <p>Encuentra otra opción desde tu turno.</p>
+        </div>
+        <a routerLink="/turnos">Ver mi turno <span aria-hidden="true">↗</span></a>
+      </div>
+      <a class="plus-banner" routerLink="/plus"
+        ><span class="plus-marca">✧ YAESTÁ <em>Plus</em></span
+        ><span>Más beneficios.<br />Más posibilidades.</span
+        ><span class="plus-boton">Descubrir ↗</span></a
+      >
+    </section>
+    <footer>
+      <a class="footer-marca" routerLink="/">YAESTÁ<span>◷</span></a>
+      <p>Tu tiempo vale. Tú eliges dónde.</p>
+      <small>Trujillo, Perú · Fotografías referenciales de categorías</small>
+    </footer>
   </main>
-
-  <footer>
-    Hecho para aprovechar mejor tu tiempo en Trujillo.
-  </footer>
-</div>
 }

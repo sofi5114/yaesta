@@ -1,3 +1,4 @@
+import { VistaCabecera } from '../../shared/vista-cabecera';
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -9,17 +10,15 @@ import { Recordatorio } from '../../models/recordatorio';
 
 @Component({
   selector: 'app-calendario',
-  imports: [DatePipe, RouterLink],
+  imports: [VistaCabecera, DatePipe, RouterLink],
   templateUrl: './calendario.html',
-  styleUrl: './calendario.css'
+  styleUrl: './calendario.css',
 })
 export class Calendario {
   readonly auth = inject(AuthService);
   private readonly servicio = inject(RecordatorioService);
 
-  readonly mes = signal(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
+  readonly mes = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
   readonly recordatorios = signal<Recordatorio[]>([]);
   readonly fechaElegida = signal<string | null>(null);
@@ -33,18 +32,14 @@ export class Calendario {
   readonly titulo = computed(() =>
     this.mes().toLocaleDateString('es-PE', {
       month: 'long',
-      year: 'numeric'
-    })
+      year: 'numeric',
+    }),
   );
 
   readonly dias = computed(() => {
     const fecha = this.mes();
     const inicio = (fecha.getDay() + 6) % 7;
-    const cantidad = new Date(
-      fecha.getFullYear(),
-      fecha.getMonth() + 1,
-      0
-    ).getDate();
+    const cantidad = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
 
     const total = Math.ceil((inicio + cantidad) / 7) * 7;
 
@@ -58,17 +53,15 @@ export class Calendario {
       const clave = [
         fecha.getFullYear(),
         String(fecha.getMonth() + 1).padStart(2, '0'),
-        String(numero).padStart(2, '0')
+        String(numero).padStart(2, '0'),
       ].join('-');
 
       return {
         numero,
         fecha: clave,
         cantidad: this.recordatorios().filter(
-          item =>
-            item.fechaProgramada === clave &&
-            item.estado !== 'CANCELADO'
-        ).length
+          (item) => item.fechaProgramada === clave && item.estado !== 'CANCELADO',
+        ).length,
       };
     });
   });
@@ -76,9 +69,7 @@ export class Calendario {
   readonly visibles = computed(() => {
     const fecha = this.fechaElegida();
 
-    return this.recordatorios().filter(
-      item => !fecha || item.fechaProgramada === fecha
-    );
+    return this.recordatorios().filter((item) => !fecha || item.fechaProgramada === fecha);
   });
 
   constructor() {
@@ -97,11 +88,8 @@ export class Calendario {
 
     const fecha = this.mes();
 
-    this.servicio.calendario(
-      fecha.getFullYear(),
-      fecha.getMonth() + 1
-    ).subscribe({
-      next: datos => {
+    this.servicio.calendario(fecha.getFullYear(), fecha.getMonth() + 1).subscribe({
+      next: (datos) => {
         this.recordatorios.set(datos);
         this.cargando.set(false);
       },
@@ -109,7 +97,7 @@ export class Calendario {
         this.recordatorios.set([]);
         this.error.set(this.mensajeError(respuesta));
         this.cargando.set(false);
-      }
+      },
     });
   }
 
@@ -120,11 +108,7 @@ export class Calendario {
 
     const actual = this.mes();
 
-    this.mes.set(new Date(
-      actual.getFullYear(),
-      actual.getMonth() + cambio,
-      1
-    ));
+    this.mes.set(new Date(actual.getFullYear(), actual.getMonth() + cambio, 1));
 
     this.fechaElegida.set(null);
     this.confirmarId.set(null);
@@ -141,11 +125,9 @@ export class Calendario {
     this.error.set('');
 
     this.servicio.cancelar(recordatorio.id).subscribe({
-      next: actualizado => {
-        this.recordatorios.update(datos =>
-          datos.map(item =>
-            item.id === actualizado.id ? actualizado : item
-          )
+      next: (actualizado) => {
+        this.recordatorios.update((datos) =>
+          datos.map((item) => (item.id === actualizado.id ? actualizado : item)),
         );
 
         this.confirmarId.set(null);
@@ -154,13 +136,12 @@ export class Calendario {
       error: (respuesta: HttpErrorResponse) => {
         this.error.set(this.mensajeError(respuesta));
         this.cancelando.set(null);
-      }
+      },
     });
   }
 
   puedeCancelar(recordatorio: Recordatorio) {
-    return recordatorio.estado === 'PENDIENTE' ||
-      recordatorio.estado === 'ERROR';
+    return recordatorio.estado === 'PENDIENTE' || recordatorio.estado === 'ERROR';
   }
 
   private mensajeError(respuesta: HttpErrorResponse): string {

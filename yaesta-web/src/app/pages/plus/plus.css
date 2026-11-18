@@ -1,0 +1,110 @@
+:host {
+  display: block;
+  background: #f7f8fb;
+  min-height: 100vh;
+  color: #30251f;
+}
+.plus {
+  max-width: 960px;
+  margin: auto;
+  padding: 32px 24px 70px;
+}
+.etiqueta {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: #99513a;
+  font-weight: 700;
+}
+h1 {
+  font-size: clamp(30px, 5vw, 44px);
+  margin: 12px 0;
+}
+h2 {
+  font-size: 23px;
+}
+.precio {
+  display: block;
+  font-size: 30px;
+  margin: 20px 0;
+}
+.precio small {
+  font-size: 16px;
+}
+.tarjeta {
+  background: white;
+  border: 1px solid #dce5e4;
+  border-radius: 20px;
+  padding: 24px;
+  margin: 24px 0;
+}
+label {
+  display: block;
+  margin: 14px 0;
+  font-weight: 600;
+}
+input,
+textarea,
+select {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 560px;
+  border: 1px solid #a8bdb8;
+  border-radius: 10px;
+  padding: 12px;
+  font: inherit;
+  margin-top: 8px;
+}
+textarea {
+  min-height: 110px;
+}
+button {
+  background: #a54f35;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  padding: 12px 18px;
+  margin: 8px 8px 8px 0;
+  font: inherit;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+article {
+  padding: 20px 0;
+  border-top: 1px solid #dce5e4;
+}
+a {
+  color: #a54f35;
+}
+.nota {
+  background: #edf5f3;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.error {
+  background: #fff0ed;
+  color: #9b3021;
+  padding: 16px;
+  border-radius: 10px;
+}
+.exito {
+  background: #e4f4eb;
+  padding: 16px;
+  border-radius: 10px;
+}
+.texto {
+  white-space: pre-wrap;
+}
+p {
+  line-height: 1.65;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #eaa22b;
+  outline-offset: 3px;
+}

@@ -10,7 +10,7 @@ import { RegistroRequest } from '../../models/auth';
   selector: 'app-registro',
   imports: [FormsModule, RouterLink],
   templateUrl: './registro.html',
-  styleUrl: './registro.css'
+  styleUrl: './registro.css',
 })
 export class Registro {
   private readonly auth = inject(AuthService);
@@ -19,7 +19,7 @@ export class Registro {
     nombre: '',
     correo: '',
     clave: '',
-    aceptaRecordatorios: false
+    aceptaRecordatorios: false,
   };
 
   confirmarClave = '';
@@ -64,9 +64,9 @@ export class Registro {
             ? 'No se pudo crear la cuenta con esos datos. Si ya tienes una, inicia sesión.'
             : typeof mensaje === 'string'
               ? mensaje
-              : 'No pudimos crear tu cuenta. Revisa los datos e intenta nuevamente.'
+              : 'No pudimos crear tu cuenta. Revisa los datos e intenta nuevamente.',
         );
-      }
+      },
     });
   }
 }

@@ -1,148 +1,162 @@
 <div class="detalle">
   <header class="cabecera">
     <a routerLink="/" class="volver">← Volver a negocios</a>
-    <span class="marca">YAESTÁ<span>.</span></span>
   </header>
 
   @if (cargando()) {
-  <p class="mensaje" role="status">Cargando negocio…</p>
+    <p class="mensaje" role="status">Cargando negocio…</p>
   } @else if (error()) {
-  <section class="mensaje" role="alert">
-    <p>{{ error() }}</p>
-    <button type="button" (click)="cargar()">Volver a intentar</button>
-  </section>
+    <section class="mensaje" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" (click)="cargar()">Volver a intentar</button>
+    </section>
   } @else {
-  @if (negocio(); as negocio) {
-  <section class="presentacion">
-    <span class="etiqueta">{{ negocio.categoria }}</span>
-    <h1>{{ negocio.nombre }}</h1>
-    <p>{{ negocio.distrito }} · Trujillo</p>
-    <span class="modalidad">Atención por orden de turnos</span>
-  </section>
+    @if (negocio(); as negocio) {
+      <app-vista-cabecera
+        [titulo]="negocio.nombre"
+        [etiqueta]="negocio.categoria"
+        [descripcion]="
+          negocio.distrito +
+          ' · Atención por orden de turnos. Elige tu servicio y consulta tu lugar en la cola.'
+        "
+        [foto]="fotoCategoria(negocio.categoria)"
+      />
 
-  <div class="distribucion">
-    <section class="servicios" aria-labelledby="titulo-servicios">
-      <div class="titulo">
-        <h2 id="titulo-servicios">Elige tu servicio</h2>
-        <span>{{ resultado()?.totalElementos }} disponibles</span>
-      </div>
+      <app-canal [negocioId]="negocio.id" />
+      <div class="distribucion">
+        <section class="servicios" aria-labelledby="titulo-servicios">
+          <div class="titulo">
+            <h2 id="titulo-servicios">Elige tu servicio</h2>
+            <span>{{ resultado()?.totalElementos }} disponibles</span>
+          </div>
 
-      <div class="lista">
-        @for (servicio of resultado()?.contenido ?? []; track servicio.id) {
-        <label class="servicio" [class.elegido]="seleccionado()?.id === servicio.id">
-          <div class="informacion">
-            <h3>{{ servicio.nombre }}</h3>
-            <p>{{ servicio.duracionMinutos }} min de atención estimada</p>
+          <div class="lista">
+            @for (servicio of resultado()?.contenido ?? []; track servicio.id) {
+              <label class="servicio" [class.elegido]="seleccionado()?.id === servicio.id">
+                <div class="informacion">
+                  <h3>{{ servicio.nombre }}</h3>
+                  <p>{{ servicio.duracionMinutos }} min de atención estimada</p>
 
-            @if (servicio.diasRecordatorio; as dias) {
-            <small>
-              Visita sugerida cada {{ dias }} días
-            </small>
+                  @if (servicio.diasRecordatorio; as dias) {
+                    <small> Visita sugerida cada {{ dias }} días </small>
+                  }
+                </div>
+
+                <div class="precio">
+                  <strong>
+                    {{ servicio.precio | currency: 'PEN' : 'S/ ' : '1.2-2' }}
+                  </strong>
+
+                  <input
+                    type="radio"
+                    name="servicio"
+                    [value]="servicio.id"
+                    [checked]="seleccionado()?.id === servicio.id"
+                    (change)="seleccionado.set(servicio)"
+                  />
+                </div>
+              </label>
+            } @empty {
+              <p class="mensaje">Este negocio todavía no tiene servicios disponibles.</p>
             }
           </div>
 
-          <div class="precio">
-            <strong>
-              {{ servicio.precio | currency:'PEN':'S/ ':'1.2-2' }}
-            </strong>
+          @if (resultado(); as pagina) {
+            @if (pagina.totalPaginas > 1) {
+              <nav class="paginacion" aria-label="Páginas de servicios">
+                <button
+                  type="button"
+                  [disabled]="pagina.pagina === 0 || cambiandoPagina()"
+                  (click)="cambiarPagina(pagina.pagina - 1)"
+                >
+                  Anterior
+                </button>
 
-            <input type="radio" name="servicio" [value]="servicio.id" [checked]="seleccionado()?.id === servicio.id"
-              (change)="seleccionado.set(servicio)" />
-          </div>
-        </label>
-        } @empty {
-        <p class="mensaje">
-          Este negocio todavía no tiene servicios disponibles.
-        </p>
-        }
+                <span> {{ pagina.pagina + 1 }} de {{ pagina.totalPaginas }} </span>
+
+                <button
+                  type="button"
+                  [disabled]="pagina.pagina + 1 >= pagina.totalPaginas || cambiandoPagina()"
+                  (click)="cambiarPagina(pagina.pagina + 1)"
+                >
+                  Siguiente
+                </button>
+              </nav>
+            }
+          }
+
+          @if (errorPagina()) {
+            <p role="alert">{{ errorPagina() }}</p>
+          }
+        </section>
+
+        <aside class="resumen">
+          <span class="etiqueta">TU ELECCIÓN</span>
+          <h2>Un momento para ti</h2>
+
+          @if (seleccionado(); as servicio) {
+            <h3>{{ servicio.nombre }}</h3>
+
+            <div class="fila">
+              <span>Duración estimada</span>
+              <strong>{{ servicio.duracionMinutos }} min</strong>
+            </div>
+
+            <div class="fila">
+              <span>Precio</span>
+              <strong>
+                {{ servicio.precio | currency: 'PEN' : 'S/ ' : '1.2-2' }}
+              </strong>
+            </div>
+          } @else {
+            <p>Selecciona un servicio para ver su resumen.</p>
+          }
+
+          <p class="aclaracion">
+            La duración del servicio es distinta del tiempo de espera en la cola.
+          </p>
+          @if (turnoCreado(); as turno) {
+            <div class="confirmacion" role="status">
+              <strong>Tu turno ya está registrado</strong>
+              <p><a routerLink="/turnos">Ver mis turnos →</a></p>
+              <p>{{ turno.servicio }} · Turno #{{ turno.id }}</p>
+
+              @if (turno.posicion !== null) {
+                <p>Posición en la cola: {{ turno.posicion }}</p>
+              }
+
+              @if (turno.esperaEstimadaMinutos !== null) {
+                <p>Espera estimada: {{ turno.esperaEstimadaMinutos }} min</p>
+              } @else {
+                <p>Tiempo de espera por actualizar.</p>
+              }
+            </div>
+          } @else if (!auth.usuario()) {
+            <a
+              class="boton-turno"
+              routerLink="/login"
+              [queryParams]="{ volver: '/negocios/' + negocio.id }"
+            >
+              Iniciar sesión para sacar turno
+            </a>
+          } @else if (auth.usuario()?.rol === 'CLIENTE') {
+            <button
+              class="boton-turno"
+              type="button"
+              [disabled]="!seleccionado() || solicitando()"
+              (click)="sacarTurno()"
+            >
+              {{ solicitando() ? 'Registrando…' : 'Sacar turno →' }}
+            </button>
+          } @else {
+            <p>Para sacar turno necesitas una cuenta de cliente.</p>
+          }
+
+          @if (errorTurno()) {
+            <p class="error-turno" role="alert">{{ errorTurno() }}</p>
+          }
+        </aside>
       </div>
-
-      @if (resultado(); as pagina) {
-      @if (pagina.totalPaginas > 1) {
-      <nav class="paginacion" aria-label="Páginas de servicios">
-        <button type="button" [disabled]="pagina.pagina === 0 || cambiandoPagina()"
-          (click)="cambiarPagina(pagina.pagina - 1)">
-          Anterior
-        </button>
-
-        <span>
-          {{ pagina.pagina + 1 }} de {{ pagina.totalPaginas }}
-        </span>
-
-        <button type="button" [disabled]="
-                    pagina.pagina + 1 >= pagina.totalPaginas ||
-                    cambiandoPagina()
-                  " (click)="cambiarPagina(pagina.pagina + 1)">
-          Siguiente
-        </button>
-      </nav>
-      }
-      }
-
-      @if (errorPagina()) {
-      <p role="alert">{{ errorPagina() }}</p>
-      }
-    </section>
-
-    <aside class="resumen">
-      <span class="etiqueta">TU ELECCIÓN</span>
-      <h2>Un momento para ti</h2>
-
-      @if (seleccionado(); as servicio) {
-      <h3>{{ servicio.nombre }}</h3>
-
-      <div class="fila">
-        <span>Duración estimada</span>
-        <strong>{{ servicio.duracionMinutos }} min</strong>
-      </div>
-
-      <div class="fila">
-        <span>Precio</span>
-        <strong>
-          {{ servicio.precio | currency:'PEN':'S/ ':'1.2-2' }}
-        </strong>
-      </div>
-      } @else {
-      <p>Selecciona un servicio para ver su resumen.</p>
-      }
-
-      <p class="aclaracion">
-        La duración del servicio es distinta del tiempo de espera
-        en la cola.
-      </p>
-      @if (turnoCreado(); as turno) {
-      <div class="confirmacion" role="status">
-        <strong>Tu turno ya está registrado</strong>
-        <p><a routerLink="/turnos">Ver mis turnos →</a></p>
-        <p>{{ turno.servicio }} · Turno #{{ turno.id }}</p>
-
-        @if (turno.posicion !== null) {
-        <p>Posición en la cola: {{ turno.posicion }}</p>
-        }
-
-        @if (turno.esperaEstimadaMinutos !== null) {
-        <p>Espera estimada: {{ turno.esperaEstimadaMinutos }} min</p>
-        } @else {
-        <p>Tiempo de espera por actualizar.</p>
-        }
-      </div>
-      } @else if (!auth.usuario()) {
-      <a class="boton-turno" routerLink="/login" [queryParams]="{ volver: '/negocios/' + negocio.id }">
-        Iniciar sesión para sacar turno
-      </a>
-      } @else if (auth.usuario()?.rol === 'CLIENTE') {
-      <button class="boton-turno" type="button" [disabled]="!seleccionado() || solicitando()" (click)="sacarTurno()">
-        {{ solicitando() ? 'Registrando…' : 'Sacar turno →' }}
-      </button>
-      } @else {
-      <p>Para sacar turno necesitas una cuenta de cliente.</p>
-      }
-
-      @if (errorTurno()) {
-      <p class="error-turno" role="alert">{{ errorTurno() }}</p>
-      }
-    </aside>
-  </div>
-  }
+    }
   }
 </div>

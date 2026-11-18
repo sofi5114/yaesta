@@ -1,3 +1,7 @@
+import { VistaCabecera } from '../../shared/vista-cabecera';
+import { PlusService } from '../../services/plus.service';
+import { Alternativas } from './alternativas';
+import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { timer } from 'rxjs';
@@ -11,12 +15,24 @@ import { Turno } from '../../models/turno';
 
 @Component({
   selector: 'app-mis-turnos',
-  imports: [RouterLink],
+  imports: [VistaCabecera, RouterLink, Alternativas, DatePipe],
   templateUrl: './mis-turnos.html',
-  styleUrl: './mis-turnos.css'
+  styleUrl: './mis-turnos.css',
 })
 export class MisTurnos {
   readonly auth = inject(AuthService);
+  private plusApi = inject(PlusService);
+  readonly historiales = signal<
+    Partial<Record<number, { accion: string; detalle: string; fecha: string }[]>>
+  >({});
+  cargarHistorial(id: number) {
+    this.plusApi
+      .get<{ accion: string; detalle: string; fecha: string }[]>(`/api/turnos/${id}/historial`)
+      .subscribe({
+        next: (h) => this.historiales.update((v) => ({ ...v, [id]: h })),
+        error: () => this.error.set('No se pudo consultar el historial.'),
+      });
+  }
   private readonly servicio = inject(TurnoService);
 
   readonly resultado = signal<Pagina<Turno> | null>(null);
@@ -31,13 +47,16 @@ export class MisTurnos {
     ATENDIENDO: 'En atención',
     ATENDIDO: 'Atendido',
     CANCELADO: 'Cancelado',
-    AUSENTE: 'Ausente'
+    AUSENTE: 'Ausente',
   };
 
   constructor() {
-    timer(15000, 15000).pipe(takeUntilDestroyed()).subscribe(() => {
-      if (this.auth.usuario()?.rol === 'CLIENTE' && document.visibilityState === 'visible') this.cargar();
-    });
+    timer(15000, 15000)
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        if (this.auth.usuario()?.rol === 'CLIENTE' && document.visibilityState === 'visible')
+          this.cargar();
+      });
     if (this.auth.usuario()?.rol === 'CLIENTE') {
       this.cargar();
     }
@@ -52,14 +71,14 @@ export class MisTurnos {
     this.error.set('');
 
     this.servicio.listar(pagina).subscribe({
-      next: datos => {
+      next: (datos) => {
         this.resultado.set(datos);
         this.cargando.set(false);
       },
       error: (respuesta: HttpErrorResponse) => {
         this.error.set(this.mensajeError(respuesta));
         this.cargando.set(false);
-      }
+      },
     });
   }
 
@@ -72,16 +91,16 @@ export class MisTurnos {
     this.error.set('');
 
     this.servicio.cancelar(turno.negocioId, turno.id).subscribe({
-      next: actualizado => {
-        this.resultado.update(datos =>
+      next: (actualizado) => {
+        this.resultado.update((datos) =>
           datos
             ? {
                 ...datos,
-                contenido: datos.contenido.map(item =>
-                  item.id === actualizado.id ? actualizado : item
-                )
+                contenido: datos.contenido.map((item) =>
+                  item.id === actualizado.id ? actualizado : item,
+                ),
               }
-            : null
+            : null,
         );
 
         this.confirmarId.set(null);
@@ -90,7 +109,7 @@ export class MisTurnos {
       error: (respuesta: HttpErrorResponse) => {
         this.error.set(this.mensajeError(respuesta));
         this.cancelando.set(false);
-      }
+      },
     });
   }
 
